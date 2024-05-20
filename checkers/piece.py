@@ -1,7 +1,7 @@
 from .constants import *
 import pygame
 class Piece():
-    PADDING = 5
+    PADDING = 7
     def __init__(self, row, col, color):
         self.row = row
         self.col = col
@@ -31,9 +31,9 @@ class Piece():
         # crtanje krune
         if self.king and self.color == WHITE:
             # slika, koordinate 
-            window.blit(CROWN1, (self.x - CROWN1.get_width()//2, self.y - CROWN1.get_height()//2))
+            window.blit(CROWN, (self.x - CROWN.get_width()//2, self.y - CROWN.get_height()//2))
         if self.king and self.color == BLACK:
-            window.blit(CROWN2, (self.x - CROWN2.get_width()//2, self.y - CROWN2.get_height()//2))
+            window.blit(CROWN, (self.x - CROWN.get_width()//2, self.y - CROWN.get_height()//2))
 
 
     def __str__(self):

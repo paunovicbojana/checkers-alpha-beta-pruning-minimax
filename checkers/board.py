@@ -65,6 +65,9 @@ class Board:
             return BLACK
         return None
     
+    def set_win(self, color):
+        return color
+    
     def move_piece_on_board(self, piece, row, col, eaten=[]):
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
         piece.move(row, col)
@@ -147,6 +150,80 @@ class Board:
         return pieces
     
     def evaluate(self):
-        white_score = self.white_pieces + self.white_kings * 2
-        black_score = self.black_pieces + self.black_kings * 2
-        return black_score - white_score
+        evaluation = self.calculate_heuristic()
+        return evaluation
+    
+    def calculate_heuristic(self):
+        white_score = [0, 0, 0, 0, 0, 0, 0]
+        black_score = [0, 0, 0, 0, 0, 0, 0]
+        weights = [5, 7.5, 4, 2.5, 0.5, -3, 3]
+
+        def is_valid_position(row, col):
+            return 0 <= row < ROWS and 0 <= col < COLS
+
+        def is_enemy(piece, color):
+            return piece != 0 and piece.color != color
+
+        def evaluate_position(row, col, score, color, king):
+            if not king:
+                score[0] += 1
+            else:
+                score[1] += 1
+
+            if color == WHITE:
+                if row == 7:
+                    score[2] += 1
+                    score[6] += 1
+                if row in {3, 4}:
+                    if 2 <= col <= 5:
+                        score[3] += 1
+                    else:
+                        score[4] += 1
+                if is_valid_position(row - 1, col - 1) and is_valid_position(row + 1, col + 1):
+                    piece_behind = self.board[row - 1][col - 1]
+                    if is_enemy(piece_behind, color) and self.board[row + 1][col + 1] == 0:
+                        score[5] += 1
+                if is_valid_position(row - 1, col + 1) and is_valid_position(row + 1, col - 1):
+                    piece_behind = self.board[row - 1][col + 1]
+                    if is_enemy(piece_behind, color) and self.board[row + 1][col - 1] == 0:
+                        score[5] += 1
+                if col in {0, 7} or (
+                    (is_valid_position(row + 1, col - 1) and self.board[row + 1][col - 1] != 0 and self.board[row + 1][col - 1].color == WHITE) or
+                    (is_valid_position(row + 1, col + 1) and self.board[row + 1][col + 1] != 0 and self.board[row + 1][col + 1].color == WHITE)
+                ):
+                    score[6] += 1
+            else:  # color == BLACK
+                if row == 0:
+                    score[2] += 1
+                    score[6] += 1
+                if row in {3, 4}:
+                    if 2 <= col <= 5:
+                        score[3] += 1
+                    else:
+                        score[4] += 1
+                if is_valid_position(row + 1, col - 1) and is_valid_position(row - 1, col + 1):
+                    piece_behind = self.board[row + 1][col - 1]
+                    if is_enemy(piece_behind, color) and self.board[row - 1][col + 1] == 0:
+                        score[5] += 1
+                if is_valid_position(row + 1, col + 1) and is_valid_position(row - 1, col - 1):
+                    piece_behind = self.board[row + 1][col + 1]
+                    if is_enemy(piece_behind, color) and self.board[row - 1][col - 1] == 0:
+                        score[5] += 1
+                if col in {0, 7} or (
+                    (is_valid_position(row - 1, col - 1) and self.board[row - 1][col - 1] != 0 and self.board[row - 1][col - 1].color == BLACK) or
+                    (is_valid_position(row - 1, col + 1) and self.board[row - 1][col + 1] != 0 and self.board[row - 1][col + 1].color == BLACK)
+                ):
+                    score[6] += 1
+
+        for row in range(ROWS):
+            for col in range(COLS):
+                checker = self.board[row][col]
+                if checker == 0:  # Assuming 0 represents an empty space
+                    continue
+                if checker.color == WHITE:
+                    evaluate_position(row, col, white_score, WHITE, checker.king)
+                elif checker.color == BLACK:
+                    evaluate_position(row, col, black_score, BLACK, checker.king)
+
+        score = sum(weights[i] * (black_score[i] - white_score[i]) for i in range(7))
+        return score

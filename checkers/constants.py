@@ -16,5 +16,4 @@ def get_color(color):
     else: 
         return "BELI"
 
-CROWN1 = pygame.transform.scale(pygame.image.load("assets/crown1.png"), (40, 22))
-CROWN2 = pygame.transform.scale(pygame.image.load("assets/crown2.png"), (40, 22))
+CROWN = pygame.transform.scale(pygame.image.load("assets/crown.png"), (30, 15))

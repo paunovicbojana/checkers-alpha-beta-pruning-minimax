@@ -2,6 +2,7 @@ import pygame
 from checkers.constants import *
 from checkers.game import Game
 from checkers.algorithm import minimax
+from cmath import inf
 
 FPS = 60
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -22,6 +23,14 @@ def display_winner(window, winner):
     pygame.display.flip()
     pygame.time.delay(10000)
 
+def display_tie(window):
+    font = pygame.font.Font(None, 50)
+    text = font.render('NEREŠENO!', True, (255, 255, 255))
+    window.fill((14, 114, 37))
+    window.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
+    pygame.display.flip()
+    pygame.time.delay(10000)
+
 def main():
     pygame.init()
     pygame.font.init()
@@ -32,10 +41,14 @@ def main():
 
     while run:
         clock.tick(FPS)
+        game.update_board()
 
         if game.turn == BLACK:
-            value, new_board = minimax(game.get_board(), 4, True, game)
-            game.computer_move(new_board)
+            value, new_board = minimax(game.get_board(), 4, float("-inf"), float("inf"), True, game)
+            if new_board is None:
+                game.tie = True
+                game.game_over = True
+            else: game.computer_move(new_board)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -46,12 +59,13 @@ def main():
                 game.select_piece(row, col)
 
         if game.game_over:
-            win = game.get_winner()
-            display_winner(window, win)
+            if game.tie:
+                display_tie(window)
+            else:
+                win = game.get_winner()
+                display_winner(window, win)
             run = False
             continue
-
-        game.update_board()
 
     pygame.quit()
 

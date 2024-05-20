@@ -14,6 +14,7 @@ class Game:
         self.turn = WHITE
         self.selected_piece = None
         self.valid_moves = {}
+        self.tie = False
 
     def get_board(self):
         return self.board
@@ -50,14 +51,13 @@ class Game:
                 self.board.remove_pieces(eaten)
             self.change_player()
             winner = self.get_winner()
-            if winner:
+            if winner is not None:
                 self.game_over = True
             return True
         return False
 
     def get_winner(self):
-        winner = self.board.winner()
-        return winner
+        return self.board.winner()
     
     def change_player(self):
         self.valid_moves = {}
@@ -74,9 +74,19 @@ class Game:
     def computer_move(self, board):
         self.board = board
         self.change_player()
+        all_moves = self.get_all_moves(self.board, self.turn)
+        if len(all_moves) == 0:
+            self.tie = True
+            self.game_over = True
+            pygame.time.delay(5000)
+            return True
+        winner = self.get_winner()
+        if winner:
+            self.game_over = True
+            pygame.time.delay(5000)
         return True
     
-    def get_all_moves(self, board, color, game):
+    def get_all_moves(self, board, color):
         moves = []
         for piece in board.get_all_pieces(color):
             valid_moves = board.get_valid_moves(piece)
