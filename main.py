@@ -2,7 +2,8 @@ import pygame
 from checkers.constants import *
 from checkers.game import Game
 from checkers.algorithm import minimax
-from cmath import inf
+from checkers.hashing import TranspositionTable
+from time import time
 
 FPS = 60
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -21,7 +22,7 @@ def display_winner(window, winner):
     window.fill((14, 114, 37))
     window.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
     pygame.display.flip()
-    pygame.time.delay(10000)
+    pygame.time.delay(3000)
 
 def display_tie(window):
     font = pygame.font.Font(None, 50)
@@ -29,7 +30,7 @@ def display_tie(window):
     window.fill((14, 114, 37))
     window.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
     pygame.display.flip()
-    pygame.time.delay(10000)
+    pygame.time.delay(3000)
 
 def main():
     pygame.init()
@@ -37,6 +38,7 @@ def main():
     run = True
     clock = pygame.time.Clock()
     game = Game(window)
+    transposition_table = TranspositionTable()
     game.update_board()
 
     while run:
@@ -44,11 +46,14 @@ def main():
         game.update_board()
 
         if game.turn == BLACK:
-            value, new_board = minimax(game.get_board(), 4, float("-inf"), float("inf"), True, game)
+            game.start_time = time()
+            value, new_board = minimax(game.get_board(), 5, float("-inf"), float("inf"), True, game, transposition_table)
+            time_elapsed = time() - game.start_time
+            print(f"Time elapsed: {time_elapsed}")
             if new_board is None:
                 game.tie = True
                 game.game_over = True
-            else: game.computer_move(new_board)
+            else: game.computer_move(new_board, transposition_table)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

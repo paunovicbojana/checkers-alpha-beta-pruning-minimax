@@ -15,9 +15,16 @@ class Game:
         self.selected_piece = None
         self.valid_moves = {}
         self.tie = False
+        self.winner = None
 
     def get_board(self):
         return self.board
+    
+    def get_winner(self):
+        return self.winner
+    
+    def set_winner(self, winner):
+        self.winner = winner
 
     def update_board(self):
         self.get_board().draw_total_board(self.window)
@@ -56,8 +63,7 @@ class Game:
             return True
         return False
 
-    def get_winner(self):
-        return self.board.winner()
+    
     
     def change_player(self):
         self.valid_moves = {}
@@ -71,22 +77,25 @@ class Game:
             row, col = move
             pygame.draw.circle(self.window, GREEN, (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
 
-    def computer_move(self, board):
+    def computer_move(self, board, transposition_table):
         self.board = board
         self.change_player()
-        all_moves = self.get_all_moves(self.board, self.turn)
-        if len(all_moves) == 0:
-            self.tie = True
+        
+        all_moves = self.get_all_moves(self.board, self.turn, transposition_table)
+        if len(all_moves) == 0 and (self.board.black_pieces > self.board.white_pieces):
+            self.set_winner(BLACK)
             self.game_over = True
             pygame.time.delay(5000)
             return True
+        
+        
         winner = self.get_winner()
         if winner:
             self.game_over = True
             pygame.time.delay(5000)
         return True
     
-    def get_all_moves(self, board, color):
+    def get_all_moves(self, board, color, transposition_table):
         moves = []
         for piece in board.get_all_pieces(color):
             valid_moves = board.get_valid_moves(piece)
@@ -94,8 +103,18 @@ class Game:
                 temp_board = deepcopy(board)
                 temp_piece = temp_board.get_piece(piece.row, piece.col)
                 new_board = self.simulate_move(temp_piece, move, temp_board, skip)
-                moves.append(new_board)
-        return moves
+                
+                transposition_entry = transposition_table.lookup(new_board)
+                if transposition_entry:
+                    moves.append((transposition_entry.best_move, len(skip)))
+                else:
+                
+                    moves.append((new_board, len(skip)))
+
+        moves.sort(key=lambda x: x[1], reverse=True)
+        
+        return [move[0] for move in moves]
+
 
     def simulate_move(self, piece, move, board, skip):
         board.move_piece_on_board(piece, move[0], move[1])

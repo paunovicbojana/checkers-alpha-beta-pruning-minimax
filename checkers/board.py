@@ -1,16 +1,18 @@
 import pygame
 from .constants import *
 from .piece import Piece
-from copy import deepcopy
+import hashlib
 
 class Board:
     def __init__(self):
         self.board = []
+        self.table = {}
         self.white_pieces = 12
         self.black_pieces = 12
         self.white_kings = 0
         self.black_kings = 0
         self.create_board()
+        
         
     def create_board(self):
         for row in range(ROWS):
@@ -58,15 +60,8 @@ class Board:
     def get_piece(self, row, col):
         return self.board[row][col]
     
-    def winner(self):
-        if self.black_pieces <= 0:
-            return WHITE
-        elif self.white_pieces <= 0:
-            return BLACK
-        return None
-    
-    def set_win(self, color):
-        return color
+    def get_board(self):
+        return self.board
     
     def move_piece_on_board(self, piece, row, col, eaten=[]):
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
@@ -192,7 +187,7 @@ class Board:
                     (is_valid_position(row + 1, col + 1) and self.board[row + 1][col + 1] != 0 and self.board[row + 1][col + 1].color == WHITE)
                 ):
                     score[6] += 1
-            else:  # color == BLACK
+            else: 
                 if row == 0:
                     score[2] += 1
                     score[6] += 1
@@ -218,7 +213,7 @@ class Board:
         for row in range(ROWS):
             for col in range(COLS):
                 checker = self.board[row][col]
-                if checker == 0:  # Assuming 0 represents an empty space
+                if checker == 0:  
                     continue
                 if checker.color == WHITE:
                     evaluate_position(row, col, white_score, WHITE, checker.king)
@@ -227,3 +222,19 @@ class Board:
 
         score = sum(weights[i] * (black_score[i] - white_score[i]) for i in range(7))
         return score
+
+    def get_piece_num(self, row, col):
+        piece = self.board[row][col]
+        if piece == 0:
+            return 0
+        else:
+            if piece.color == WHITE:
+                if piece.king:
+                    return 2
+                else:
+                    return 1
+            else:
+                if piece.king:
+                    return 4
+                else:
+                    return 3
