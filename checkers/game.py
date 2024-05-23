@@ -81,12 +81,8 @@ class Game:
         self.change_player()
         
         all_moves = self.get_all_moves(self.board, self.turn, transposition_table)
-        if len(all_moves) == 0 and len(all_moves_b) == 0:
-            self.tie = True
-            self.game_over = True
-            pygame.time.delay(3000)
-            return True
-        if len(all_moves) == 0 and (self.board.black_pieces < self.board.white_pieces):
+    
+        if len(all_moves_b) == 0 and (self.board.black_pieces < self.board.white_pieces):
             self.set_winner(WHITE)
             self.game_over = True
             pygame.time.delay(3000)
