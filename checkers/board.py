@@ -222,19 +222,4 @@ class Board:
 
         score = sum(weights[i] * (black_score[i] - white_score[i]) for i in range(7))
         return score
-
-    def get_piece_num(self, row, col):
-        piece = self.board[row][col]
-        if piece == 0:
-            return 0
-        else:
-            if piece.color == WHITE:
-                if piece.king:
-                    return 2
-                else:
-                    return 1
-            else:
-                if piece.king:
-                    return 4
-                else:
-                    return 3
+    
